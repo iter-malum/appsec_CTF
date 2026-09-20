@@ -41,14 +41,12 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin-ussc}
       UPLOAD_DIR: /data/uploads
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}
-      ENVIRONMENT: ${ENVIRONMENT:-production}
     volumes:
       - uploads_data:/data/uploads
       - secrets_data:/secrets:ro
-    # API НЕ снаружи — браузер ходит только на :3000, /api проксирует Next.js
-    expose:
-      - "8000"
+    ports:
+      # Как раньше — API доступен снаружи (нужно для облака / прямых запросов)
+      - "0.0.0.0:${API_PORT:-8000}:8000"
     depends_on:
       init-secrets:
         condition: service_completed_successfully
@@ -59,6 +57,7 @@ services:
     build:
       context: ./frontend
       args:
+        # Пусто = браузер ходит на тот же хост:/api (rewrite в Next → api)
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     restart: unless-stopped
     environment:
@@ -66,7 +65,6 @@ services:
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
     ports:
-      # Главный вход с других машин: http://IP:3000
       - "0.0.0.0:${WEB_PORT:-3000}:3000"
     depends_on:
       - api

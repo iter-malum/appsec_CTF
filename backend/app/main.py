@@ -23,11 +23,10 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="AppSec CTF API", version="1.0.0", lifespan=lifespan)
 
-# Same-origin через Next (:3000) / Caddy — credentials нужны для cookie
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

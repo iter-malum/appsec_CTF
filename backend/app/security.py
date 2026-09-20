@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -9,6 +10,7 @@ from app.config import get_settings
 from app.database import get_db
 from app.models import User, UserRole
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 settings = get_settings()
 ALGORITHM = "HS256"
 
@@ -37,27 +39,28 @@ def get_user_by_username(db: Session, username: str) -> User | None:
     return db.query(User).filter(User.username == username).first()
 
 
-def _extract_token(request: Request) -> str | None:
-    cookie = request.cookies.get(settings.cookie_name)
-    if cookie:
-        return cookie
-    auth = request.headers.get("Authorization")
-    if auth and auth.lower().startswith("bearer "):
-        return auth.split(" ", 1)[1].strip()
-    return None
+def _token_from_request(request: Request, bearer: str | None) -> str | None:
+    if bearer:
+        return bearer
+    # optional cookie if present
+    return request.cookies.get(getattr(settings, "cookie_name", "access_token"))
 
 
-async def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
+async def get_current_user(
+    request: Request,
+    token: str | None = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Необходима авторизация",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    token = _extract_token(request)
-    if not token:
+    raw = _token_from_request(request, token)
+    if not raw:
         raise credentials_exception
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
+        payload = jwt.decode(raw, settings.secret_key, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if not username:
             raise credentials_exception

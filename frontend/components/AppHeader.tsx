@@ -151,7 +151,7 @@ export function AppHeader() {
                 )}
               </div>
               <span className="muted" style={{ fontSize: "0.85rem" }}>@{user.username}</span>
-              <button className="linkish" type="button" onClick={() => void logout()}>
+              <button className="linkish" type="button" onClick={logout}>
                 Выйти
               </button>
             </>

@@ -1,40 +1,47 @@
-# AppSec CTF — безопасно и доступно по IP
+# AppSec CTF
 
-## Модель доступа
+## Доступ (как раньше) + базовая безопасность
 
-| Порт | Снаружи? | Назначение |
-|------|----------|------------|
-| **3000** | да | UI + `/api` через Next.js proxy |
-| **80 / 443** | да | Caddy (то же самое) |
-| **8000** | **нет** | API только внутри Docker |
+| Порт | Назначение |
+|------|------------|
+| **3000** | UI |
+| **8000** | API |
+| 80 / 443 | Caddy (опционально) |
 
-С другой машины: `http://IP_СЕРВЕРА:3000`
+Открывать: `http://ПУБЛИЧНЫЙ_IP:3000`
 
-## Первый деплой
+## Безопасность при этом
+
+- Пароли/SECRET_KEY генерируются при первом деплое (не `admin123`)
+- Rate limit на login/register
+- API в Docker не от root
+- Админ: `admin-ussc` (или `ADMIN_USERNAME` из `.env`)
+
+## Деплой
 
 ```bash
-# чистый старт (если меняли схему секретов)
 docker compose down
+# если меняли схему секретов:
 docker volume rm appsec_ctf_secrets_data appsec_ctf_postgres_data
 
 docker compose up --build -d
 docker compose logs init-secrets
+bash scripts/diagnose.sh
 ```
 
-Логин админа: **`admin-ussc`**  
-Пароль: из логов `init-secrets` (или `docker compose exec api cat /secrets/CREDENTIALS.txt`)
+Логин/пароль админа — в логах `init-secrets` или:
 
-## Что защищено
+```bash
+docker compose exec api cat /secrets/CREDENTIALS.txt
+```
 
-- Случайные SECRET_KEY / пароль БД / пароль админа
-- API не торчит в сеть
-- HttpOnly cookie + Bearer fallback, TTL 8 часов
-- Rate limit на login/register
-- Контейнер API не от root
-- Caddy принимает запросы по IP (не только localhost)
-- Авторизация отчётов/команд/чата
+## Если с публичного IP не открывается, а на сервере curl ок
 
-## Сеть
+Проверка **с вашего ПК**:
 
-Нужен IP из `hostname -I` (например `10.129.0.26`), не `172.x` Docker.  
-С интернета — публичный IP + security group на TCP 3000 (и 80 при необходимости).
+```powershell
+curl -v http://ПУБЛИЧНЫЙ_IP:3000
+curl -v http://ПУБЛИЧНЫЙ_IP:8000/api/health
+```
+
+Если timeout — блок до ВМ (другая SG, NAT, IPv6). SSH на 22 не доказывает, что 3000 открыт в той же группе.

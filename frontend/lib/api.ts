@@ -42,11 +42,7 @@ export async function api<T>(path: string, options: RequestInit = {}, auth = tru
     if (token) headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-    credentials: "include",
-  });
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) throw new ApiError(res.status, await parseError(res));
   if (res.status === 204) return undefined as T;
   const text = await res.text();
@@ -62,26 +58,16 @@ export async function login(username: string, password: string) {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
-    credentials: "include",
   });
   if (!res.ok) throw new ApiError(res.status, await parseError(res));
   return res.json() as Promise<{ access_token: string }>;
 }
 
-export async function logoutRequest() {
-  try {
-    await api("/api/auth/logout", { method: "POST" });
-  } catch {
-    /* ignore */
-  }
-  setToken(null);
-}
-
 export async function downloadAuth(path: string, filename: string) {
   const token = getToken();
-  const headers: HeadersInit = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${API_BASE}${path}`, { headers, credentials: "include" });
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   if (!res.ok) throw new ApiError(res.status, await parseError(res));
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
