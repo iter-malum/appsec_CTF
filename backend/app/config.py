@@ -10,7 +10,16 @@ def _from_file_or_env(name: str, default: str = "") -> str:
     path = os.getenv(f"{name}_FILE")
     if path and Path(path).is_file():
         return Path(path).read_text(encoding="utf-8").strip()
-    return os.getenv(name, default)
+    # Prefer dedicated files under /secrets when present (Docker volume)
+    secrets_map = {
+        "SECRET_KEY": "/secrets/secret_key",
+        "ADMIN_PASSWORD": "/secrets/admin_password",
+        "POSTGRES_PASSWORD": "/secrets/postgres_password",
+    }
+    fallback = secrets_map.get(name)
+    if fallback and Path(fallback).is_file():
+        return Path(fallback).read_text(encoding="utf-8").strip()
+    return os.getenv(name, default).strip()
 
 
 class Settings(BaseSettings):
