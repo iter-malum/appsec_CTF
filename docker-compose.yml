@@ -22,7 +22,7 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-appsec}:${POSTGRES_PASSWORD:-appsec_secret_change_me}@db:5432/${POSTGRES_DB:-appsec_ctf}
       UPLOAD_DIR: /data/uploads
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "0.0.0.0:${API_PORT:-8000}:8000"
     volumes:
       - uploads_data:/data/uploads
     depends_on:
@@ -37,8 +37,10 @@ services:
     restart: unless-stopped
     environment:
       INTERNAL_API_URL: http://api:8000
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "0.0.0.0:${WEB_PORT:-3000}:3000"
     depends_on:
       - api
 
@@ -46,8 +48,8 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      - "${HTTP_PORT:-8080}:80"
-      - "${HTTPS_PORT:-8443}:443"
+      - "0.0.0.0:${HTTP_PORT:-8080}:80"
+      - "0.0.0.0:${HTTPS_PORT:-8443}:443"
     environment:
       DOMAIN: ${DOMAIN:-localhost}
       ACME_EMAIL: ${ACME_EMAIL:-admin@localhost}
