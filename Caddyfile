@@ -1,12 +1,34 @@
 {
 	email {$ACME_EMAIL:admin@localhost}
+	# Для доступа по IP в LAN не ограничиваемся только hostname localhost
+	auto_https disable_redirects
 }
 
-{$DOMAIN:localhost} {
+# HTTP — доступ с других машин по IP: http://IP_СЕРВЕРА/
+:80 {
+	encode gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}
+
+# HTTPS (локальный сертификат) — https://IP_СЕРВЕРА/ или https://localhost/
+:443 {
 	tls internal
 	encode gzip
 
-	# Security headers
 	header {
 		X-Content-Type-Options nosniff
 		X-Frame-Options DENY
