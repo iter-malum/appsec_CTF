@@ -18,13 +18,13 @@ export default function HomePage() {
   return (
     <div className="stack">
       <section className="hero">
-        <div className="hero-logos">
+        <div className="hero-logos" aria-label="Бренды мероприятия">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="urfu-logo" src="/brand/urfu-dark.png" alt="Уральский федеральный университет" />
-          <span className="ussc-wrap">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/ussc-wordmark.png" alt="УЦСБ" />
-          </span>
+          <img src="/brand/appsec-ctf-iso.png" alt="AppSec CTF" className="iso-logo iso-logo-lg" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/urfu-iso.png" alt="УрФУ" className="iso-logo" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/ussc-iso.png" alt="УЦСБ" className="iso-logo" />
         </div>
         <h1>{event?.title || "AppSec CTF"}</h1>
         <p>
@@ -59,29 +59,14 @@ export default function HomePage() {
           <h2>О мероприятии</h2>
           {event ? <Markdown>{event.description_md}</Markdown> : <p className="muted">Загрузка…</p>}
         </article>
-        <aside className="stack">
-          <div className="panel">
-            <h3>Как проходит</h3>
-            <ol className="muted" style={{ margin: 0, paddingLeft: "1.1rem", lineHeight: 1.7 }}>
-              <li>Регистрация и создание команды (до 10 человек)</li>
-              <li>Скачивание исходников и анализ</li>
-              <li>Сдача отчёта PDF / DOCX / TXT / MD</li>
-              <li>Оценка по критериям 0–100 и публикация результата</li>
-            </ol>
-          </div>
-          <div className="panel">
-            <h3>Партнёры</h3>
-            <div className="hero-logos" style={{ marginBottom: "0.75rem" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/urfu-dark.png" alt="УрФУ" style={{ height: 40 }} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/ussc-badge.png" alt="УЦСБ" style={{ height: 52 }} />
-            </div>
-            <p className="muted" style={{ margin: 0 }}>
-              Совместная инициатива Уральского федерального университета и УЦСБ — связка академической
-              экспертизы и индустрии информационной безопасности.
-            </p>
-          </div>
+        <aside className="panel">
+          <h3>Как проходит</h3>
+          <ol className="muted" style={{ margin: 0, paddingLeft: "1.1rem", lineHeight: 1.7 }}>
+            <li>Регистрация и создание команды (до 10 человек)</li>
+            <li>Скачивание исходников и анализ</li>
+            <li>Сдача отчёта PDF / DOCX / TXT / MD</li>
+            <li>Оценка по критериям 0–100 и публикация результата</li>
+          </ol>
         </aside>
       </div>
     </div>

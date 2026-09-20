@@ -76,22 +76,19 @@ export function AppHeader() {
     <header className="nav">
       <div className="container nav-inner">
         <Link href="/" className="brand">
-          <div className="brand-mark">AS</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/appsec-ctf-iso.png" alt="" className="brand-iso" />
           <div className="brand-text">
             <strong>AppSec CTF</strong>
             <span>УрФУ × УЦСБ</span>
           </div>
         </Link>
 
-        <div className="partners" aria-label="Партнёры">
-          <a className="partner-logo" href="https://urfu.ru/ru/" target="_blank" rel="noreferrer" title="УрФУ">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/urfu-dark.png" alt="Уральский федеральный университет" />
-          </a>
-          <a className="partner-logo ussc" href="https://www.ussc.ru/" target="_blank" rel="noreferrer" title="УЦСБ">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/ussc-wordmark.png" alt="УЦСБ" />
-          </a>
+        <div className="partners" aria-label="Организаторы">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/urfu-iso.png" alt="УрФУ" className="nav-iso" title="УрФУ" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/ussc-iso.png" alt="УЦСБ" className="nav-iso" title="УЦСБ" />
         </div>
 
         <nav className="nav-links">

@@ -101,21 +101,6 @@ select {
   min-width: max-content;
 }
 
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: var(--urfu-gradient);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 28px rgba(194, 24, 91, 0.28);
-  font-family: var(--mono);
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  color: #fff;
-}
-
 .brand-text {
   display: flex;
   flex-direction: column;
@@ -132,48 +117,42 @@ select {
   color: var(--muted);
 }
 
-.partners {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
+.brand-iso {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
-.partner-logo {
-  display: flex;
-  align-items: center;
-  height: 36px;
-}
-
-.partner-logo img {
-  height: 100%;
+.nav-iso {
+  height: 40px;
   width: auto;
-  max-width: 160px;
   object-fit: contain;
   display: block;
 }
 
-.partner-logo.ussc {
-  background: #ffffff;
-  padding: 0.35rem 0.55rem;
-  border-radius: 8px;
+.iso-logo {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.35));
 }
 
-.partner-logo.ussc img {
-  height: 28px;
+.iso-logo-lg {
+  height: 88px;
 }
 
-.footer-logos .ussc-wrap {
-  background: #ffffff;
-  padding: 0.3rem 0.5rem;
-  border-radius: 8px;
-  display: inline-flex;
+.hero-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: center;
 }
 
-.hero-logos .ussc-wrap {
-  background: #ffffff;
-  padding: 0.45rem 0.7rem;
-  border-radius: 10px;
-  display: inline-flex;
+.partners {
+  display: flex;
+  gap: 0.75rem;
   align-items: center;
 }
 
@@ -259,24 +238,6 @@ select {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-}
-
-.hero-logos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  align-items: center;
-}
-
-.hero-logos img {
-  height: 48px;
-  width: auto;
-  max-width: 220px;
-  object-fit: contain;
-}
-
-.hero-logos .urfu-logo {
-  height: 56px;
 }
 
 .grid-2 {
@@ -592,27 +553,6 @@ select {
   font-family: var(--mono);
   font-size: 1.6rem;
   color: var(--ussc-orange-bright);
-}
-
-.footer {
-  border-top: 1px solid var(--line);
-  padding: 1.25rem 0 2rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.footer-logos {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.footer-logos img {
-  height: 28px;
-  width: auto;
-  max-width: 140px;
-  object-fit: contain;
-  opacity: 0.92;
 }
 
 @media (max-width: 900px) {
