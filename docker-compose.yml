@@ -7,7 +7,10 @@ services:
     volumes:
       - secrets_data:/secrets
       - ./scripts/generate-secrets.sh:/generate-secrets.sh:ro
-    entrypoint: ["/bin/sh", "-c", "sed -i 's/\\r$//' /generate-secrets.sh && /bin/sh /generate-secrets.sh"]
+    entrypoint:
+      - /bin/sh
+      - -c
+      - "tr -d '\\r' < /generate-secrets.sh > /tmp/generate-secrets.sh && chmod +x /tmp/generate-secrets.sh && /bin/sh /tmp/generate-secrets.sh"
 
   db:
     image: postgres:16-alpine
@@ -100,7 +103,10 @@ services:
       - ./scripts/backup-entrypoint.sh:/backup-entrypoint.sh:ro
       - backup_data:/backups
       - secrets_data:/secrets:ro
-    entrypoint: ["/bin/sh", "-c", "sed -i 's/\\r$//' /backup-entrypoint.sh /backup.sh && /bin/sh /backup-entrypoint.sh"]
+    entrypoint:
+      - /bin/sh
+      - -c
+      - "tr -d '\\r' < /backup-entrypoint.sh > /tmp/backup-entrypoint.sh && tr -d '\\r' < /backup.sh > /tmp/backup.sh && chmod +x /tmp/backup-entrypoint.sh /tmp/backup.sh && /bin/sh /tmp/backup-entrypoint.sh"
     depends_on:
       init-secrets:
         condition: service_completed_successfully
