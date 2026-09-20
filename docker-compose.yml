@@ -66,8 +66,9 @@ services:
       INTERNAL_API_URL: http://api:8000
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
-    expose:
-      - "3000"
+    ports:
+      # LAN-доступ к UI (как раньше). API по-прежнему только внутри Docker.
+      - "0.0.0.0:${WEB_PORT:-3000}:3000"
     depends_on:
       - api
 
@@ -75,8 +76,8 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      - "0.0.0.0:${HTTP_PORT:-8080}:80"
-      - "0.0.0.0:${HTTPS_PORT:-8443}:443"
+      - "0.0.0.0:${HTTP_PORT:-80}:80"
+      - "0.0.0.0:${HTTPS_PORT:-443}:443"
     environment:
       DOMAIN: ${DOMAIN:-localhost}
       ACME_EMAIL: ${ACME_EMAIL:-admin@localhost}

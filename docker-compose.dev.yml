@@ -1,10 +1,7 @@
-# Optional local override: publish web/api for debugging only
-# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+# Optional: also publish API on localhost only for debugging
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 services:
   api:
     ports:
       - "127.0.0.1:8000:8000"
-  web:
-    ports:
-      - "127.0.0.1:3000:3000"
