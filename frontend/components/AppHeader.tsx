@@ -84,13 +84,6 @@ export function AppHeader() {
           </div>
         </Link>
 
-        <div className="partners" aria-label="Организаторы">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/urfu-iso.png" alt="УрФУ" className="nav-iso" title="УрФУ" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/ussc-iso.png" alt="УЦСБ" className="nav-iso" title="УЦСБ" />
-        </div>
-
         <nav className="nav-links">
           {links
             .filter((l) => !l.auth || !!user)

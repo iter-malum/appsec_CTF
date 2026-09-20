@@ -143,17 +143,16 @@ select {
   height: 88px;
 }
 
-.hero-logos {
+.event-logos {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.25rem;
+  gap: 1rem;
   align-items: center;
+  margin: 0 0 1.1rem;
 }
 
 .partners {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
+  display: none;
 }
 
 .partner-chip {

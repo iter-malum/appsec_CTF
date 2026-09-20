@@ -18,14 +18,6 @@ export default function HomePage() {
   return (
     <div className="stack">
       <section className="hero">
-        <div className="hero-logos" aria-label="Бренды мероприятия">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/appsec-ctf-iso.png" alt="AppSec CTF" className="iso-logo iso-logo-lg" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/urfu-iso.png" alt="УрФУ" className="iso-logo" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/ussc-iso.png" alt="УЦСБ" className="iso-logo" />
-        </div>
         <h1>{event?.title || "AppSec CTF"}</h1>
         <p>
           Высокотехнологичная платформа командного соревнования по безопасности приложений.
@@ -57,6 +49,14 @@ export default function HomePage() {
       <div className="grid-2">
         <article className="panel">
           <h2>О мероприятии</h2>
+          <div className="event-logos" aria-label="Организаторы">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/appsec-ctf-iso.png" alt="AppSec CTF" className="iso-logo" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/urfu-iso.png" alt="УрФУ" className="iso-logo" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/ussc-iso.png" alt="УЦСБ" className="iso-logo" />
+          </div>
           {event ? <Markdown>{event.description_md}</Markdown> : <p className="muted">Загрузка…</p>}
         </article>
         <aside className="panel">
