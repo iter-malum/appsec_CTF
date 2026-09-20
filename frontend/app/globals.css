@@ -39,6 +39,8 @@ body {
   background: var(--bg-0);
   color: var(--text);
   font-family: var(--font);
+  font-size: 18px;
+  line-height: 1.65;
 }
 
 body {
@@ -108,12 +110,12 @@ select {
 }
 
 .brand-text strong {
-  font-size: 1rem;
+  font-size: 1.15rem;
   letter-spacing: 0.02em;
 }
 
 .brand-text span {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   color: var(--muted);
 }
 
@@ -188,11 +190,12 @@ select {
 .nav-links a,
 .nav-links button.linkish {
   color: var(--muted);
-  padding: 0.45rem 0.7rem;
+  padding: 0.5rem 0.85rem;
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
+  font-size: 1.05rem;
 }
 
 .nav-links a:hover,
@@ -216,7 +219,7 @@ select {
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-size: clamp(2.6rem, 5.5vw, 4rem);
   letter-spacing: -0.03em;
   line-height: 1.05;
   background: linear-gradient(115deg, #fff 10%, var(--ussc-orange-bright) 45%, var(--urfu-magenta) 85%);
@@ -229,8 +232,8 @@ select {
   margin: 0;
   max-width: 46rem;
   color: var(--muted);
-  font-size: 1.05rem;
-  line-height: 1.6;
+  font-size: 1.25rem;
+  line-height: 1.7;
 }
 
 .hero-actions {
@@ -261,8 +264,16 @@ select {
 
 .panel h2,
 .panel h3 {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.85rem;
   letter-spacing: -0.02em;
+}
+
+.panel h2 {
+  font-size: 1.65rem;
+}
+
+.panel h3 {
+  font-size: 1.35rem;
 }
 
 .muted {
@@ -276,10 +287,11 @@ select {
   gap: 0.4rem;
   border-radius: 12px;
   border: 1px solid transparent;
-  padding: 0.7rem 1.05rem;
+  padding: 0.85rem 1.25rem;
   cursor: pointer;
   transition: 0.15s ease;
   font-weight: 600;
+  font-size: 1.08rem;
 }
 
 .btn:disabled {
@@ -332,7 +344,7 @@ select {
 }
 
 .field label {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--muted);
 }
 
@@ -344,8 +356,9 @@ select {
   border: 1px solid var(--line);
   background: rgba(0, 0, 0, 0.25);
   color: var(--text);
-  padding: 0.7rem 0.85rem;
+  padding: 0.85rem 1rem;
   outline: none;
+  font-size: 1.05rem;
 }
 
 .field input:focus,
@@ -375,8 +388,9 @@ select {
 }
 
 .markdown {
-  line-height: 1.65;
+  line-height: 1.75;
   color: #d5e2ef;
+  font-size: 1.12rem;
 }
 
 .markdown h1,
@@ -384,6 +398,23 @@ select {
 .markdown h3 {
   color: var(--text);
   letter-spacing: -0.02em;
+}
+
+.markdown h1 {
+  font-size: 1.7rem;
+}
+
+.markdown h2 {
+  font-size: 1.4rem;
+}
+
+.markdown h3 {
+  font-size: 1.2rem;
+}
+
+.markdown p,
+.markdown li {
+  font-size: 1.12rem;
 }
 
 .markdown code {
@@ -410,14 +441,15 @@ select {
 .table th,
 .table td {
   text-align: left;
-  padding: 0.75rem 0.5rem;
+  padding: 0.85rem 0.55rem;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
+  font-size: 1.05rem;
 }
 
 .table th {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -426,9 +458,9 @@ select {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.2rem 0.55rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   border: 1px solid var(--line);
   color: var(--muted);
 }
@@ -491,9 +523,9 @@ select {
 }
 
 .bubble .meta {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   color: var(--muted);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
 }
 
 .notif-btn {
