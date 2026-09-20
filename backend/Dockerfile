@@ -18,5 +18,4 @@ RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh \
     && chown -R app:app /app /home/app
 
 EXPOSE 8000
-
 ENTRYPOINT ["/entrypoint.sh"]

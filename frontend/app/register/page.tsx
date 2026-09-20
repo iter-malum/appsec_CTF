@@ -24,16 +24,12 @@ export default function RegisterPage() {
         "/api/auth/register",
         {
           method: "POST",
-          body: JSON.stringify({
-            username,
-            password,
-            display_name: displayName,
-          }),
+          body: JSON.stringify({ username, password, display_name: displayName }),
         },
         false
       );
-      await login(username, password);
-      await setSession();
+      const { access_token } = await login(username, password);
+      await setSession(access_token);
       router.push("/team");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Ошибка регистрации");

@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, logoutRequest } from "./api";
+import { api, logoutRequest, setToken } from "./api";
 import type { User } from "./types";
 
 type AuthCtx = {
@@ -17,7 +17,7 @@ type AuthCtx = {
   loading: boolean;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
-  setSession: () => Promise<void>;
+  setSession: (token?: string) => Promise<void>;
 };
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(me);
     } catch {
       setUser(null);
+      setToken(null);
     } finally {
       setLoading(false);
     }
@@ -46,10 +47,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  const setSession = useCallback(async () => {
-    setLoading(true);
-    await refresh();
-  }, [refresh]);
+  const setSession = useCallback(
+    async (token?: string) => {
+      if (token) setToken(token);
+      setLoading(true);
+      await refresh();
+    },
+    [refresh]
+  );
 
   const value = useMemo(
     () => ({ user, loading, refresh, logout, setSession }),

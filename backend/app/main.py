@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import admin, auth, event, notifications, reports, support, teams
-from app.config import get_settings
 from app.database import Base, SessionLocal, engine
 from app.seed import ensure_seed
 from app.services.files import ensure_upload_dirs
@@ -22,17 +21,15 @@ async def lifespan(_: FastAPI):
     yield
 
 
-settings = get_settings()
-origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
-
 app = FastAPI(title="AppSec CTF API", version="1.0.0", lifespan=lifespan)
 
+# Same-origin через Next (:3000) / Caddy — credentials нужны для cookie
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth.router, prefix="/api")

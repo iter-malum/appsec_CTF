@@ -47,10 +47,7 @@ def _extract_token(request: Request) -> str | None:
     return None
 
 
-async def get_current_user(
-    request: Request,
-    db: Session = Depends(get_db),
-) -> User:
+async def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Необходима авторизация",

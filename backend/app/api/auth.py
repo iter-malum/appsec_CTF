@@ -19,7 +19,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 settings = get_settings()
 
 
-def _set_auth_cookie(response: Response, token: str) -> None:
+def _set_cookie(response: Response, token: str) -> None:
     response.set_cookie(
         key=settings.cookie_name,
         value=token,
@@ -31,19 +31,14 @@ def _set_auth_cookie(response: Response, token: str) -> None:
     )
 
 
-def _clear_auth_cookie(response: Response) -> None:
+def _clear_cookie(response: Response) -> None:
     response.delete_cookie(key=settings.cookie_name, path="/")
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(payload: UserCreate, request: Request, db: Session = Depends(get_db)) -> User:
-    limiter.check(
-        f"register:{client_ip(request)}",
-        settings.rate_limit_register,
-        settings.rate_limit_window_sec,
-    )
+    limiter.check(f"reg:{client_ip(request)}", settings.rate_limit_register, settings.rate_limit_window_sec)
     if get_user_by_username(db, payload.username):
-        # Anti-enumeration: same wording as validation failure
         raise HTTPException(status_code=400, detail="Не удалось зарегистрироваться. Проверьте данные.")
 
     user = User(
@@ -65,11 +60,7 @@ def login(
     form: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ) -> TokenOut:
-    limiter.check(
-        f"login:{client_ip(request)}",
-        settings.rate_limit_login,
-        settings.rate_limit_window_sec,
-    )
+    limiter.check(f"login:{client_ip(request)}", settings.rate_limit_login, settings.rate_limit_window_sec)
     limiter.check(
         f"login-user:{form.username.strip().lower()}",
         settings.rate_limit_login,
@@ -77,24 +68,24 @@ def login(
     )
 
     user = get_user_by_username(db, form.username.strip().lower())
-    # Dummy hash burns time on miss (anti-enumeration / timing)
-    dummy_hash = "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
+    dummy = "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
     if user:
         valid = verify_password(form.password, user.password_hash)
     else:
-        verify_password(form.password, dummy_hash)
+        verify_password(form.password, dummy)
         valid = False
+
     if not user or not valid or not user.is_active:
         raise HTTPException(status_code=400, detail="Неверный логин или пароль")
 
     token = create_access_token(user.username)
-    _set_auth_cookie(response, token)
+    _set_cookie(response, token)
     return TokenOut(access_token=token)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(response: Response) -> None:
-    _clear_auth_cookie(response)
+    _clear_cookie(response)
 
 
 @router.get("/me", response_model=UserOut)

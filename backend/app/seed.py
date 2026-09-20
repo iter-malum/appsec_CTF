@@ -21,68 +21,49 @@ DEFAULT_CHALLENGE = """# Задание
 """
 
 DEFAULT_RUBRIC = [
-    {
-        "id": "repro",
-        "title": "Воспроизводимость находок",
-        "max_points": 25,
-        "description": "Чёткие шаги, PoC, окружение",
-    },
-    {
-        "id": "analysis",
-        "title": "Глубина анализа",
-        "max_points": 25,
-        "description": "Качество и полнота исследования",
-    },
-    {
-        "id": "impact",
-        "title": "Оценка влияния",
-        "max_points": 25,
-        "description": "Риски, сценарии атаки, приоритеты",
-    },
-    {
-        "id": "fix",
-        "title": "Рекомендации по исправлению",
-        "max_points": 25,
-        "description": "Практичные и корректные фиксы",
-    },
+    {"id": "repro", "title": "Воспроизводимость находок", "max_points": 25, "description": "Чёткие шаги, PoC, окружение"},
+    {"id": "analysis", "title": "Глубина анализа", "max_points": 25, "description": "Качество и полнота исследования"},
+    {"id": "impact", "title": "Оценка влияния", "max_points": 25, "description": "Риски, сценарии атаки, приоритеты"},
+    {"id": "fix", "title": "Рекомендации по исправлению", "max_points": 25, "description": "Практичные и корректные фиксы"},
 ]
 
 
 def ensure_seed(db: Session) -> None:
-    """Создаёт админа только при первом запуске. Пароль из secrets не перезаписывается."""
+    """Создаёт admin-ussc один раз. Пароль из secrets не перезаписывается при рестарте."""
     settings = get_settings()
     username = settings.admin_username.strip().lower()
 
     admin = get_user_by_username(db, username)
     if not admin:
-        admin = User(
-            username=username,
-            password_hash=hash_password(settings.admin_password),
-            display_name="Администратор УЦСБ",
-            role=UserRole.admin,
-            is_active=True,
+        db.add(
+            User(
+                username=username,
+                password_hash=hash_password(settings.admin_password),
+                display_name="Администратор УЦСБ",
+                role=UserRole.admin,
+                is_active=True,
+            )
         )
-        db.add(admin)
-        print(f"[seed] created admin user @{username}")
+        print(f"[seed] created @{username}")
     else:
-        print(f"[seed] admin @{username} already exists (password not changed)")
+        print(f"[seed] @{username} exists (password unchanged)")
 
-    # Deactivate legacy default admin from earlier builds
+    # Старый дефолтный admin отключаем
     if username != "admin":
         legacy = get_user_by_username(db, "admin")
         if legacy and legacy.is_active:
             legacy.is_active = False
-            print("[seed] deactivated legacy @admin account")
+            print("[seed] deactivated legacy @admin")
 
-    content = db.query(EventContent).filter(EventContent.id == 1).first()
-    if not content:
-        content = EventContent(
-            id=1,
-            title="AppSec CTF",
-            description_md=DEFAULT_DESCRIPTION,
-            challenge_md=DEFAULT_CHALLENGE,
-            rubric=DEFAULT_RUBRIC,
+    if not db.query(EventContent).filter(EventContent.id == 1).first():
+        db.add(
+            EventContent(
+                id=1,
+                title="AppSec CTF",
+                description_md=DEFAULT_DESCRIPTION,
+                challenge_md=DEFAULT_CHALLENGE,
+                rubric=DEFAULT_RUBRIC,
+            )
         )
-        db.add(content)
 
     db.commit()

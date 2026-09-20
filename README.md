@@ -1,70 +1,40 @@
-# AppSec CTF
+# AppSec CTF — безопасно и доступно по IP
 
-Платформа для командного CTF по безопасности приложений. Совместное мероприятие **УрФУ** и **УЦСБ**.
+## Модель доступа
 
-## Быстрый старт
+| Порт | Снаружи? | Назначение |
+|------|----------|------------|
+| **3000** | да | UI + `/api` через Next.js proxy |
+| **80 / 443** | да | Caddy (то же самое) |
+| **8000** | **нет** | API только внутри Docker |
+
+С другой машины: `http://IP_СЕРВЕРА:3000`
+
+## Первый деплой
 
 ```bash
-cp .env.example .env
+# чистый старт (если меняли схему секретов)
+docker compose down
+docker volume rm appsec_ctf_secrets_data appsec_ctf_postgres_data
+
 docker compose up --build -d
 docker compose logs init-secrets
 ```
 
-При **первом** деплое в логах `init-secrets` будут сгенерированы пароли:
+Логин админа: **`admin-ussc`**  
+Пароль: из логов `init-secrets` (или `docker compose exec api cat /secrets/CREDENTIALS.txt`)
 
-```text
-Admin login:       admin-ussc
-Admin password:    <случайный>
-Postgres password: <случайный>
-```
+## Что защищено
 
-Позже пароль админа:
-
-```bash
-docker compose exec api cat /secrets/CREDENTIALS.txt
-```
-
-Откройте UI: **http://localhost:8080** (или https://localhost:8443).
-
-> API и Next.js **не** публикуются наружу — только через Caddy.  
-> Для отладки: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
-
-### Важно при обновлении со старой версии
-
-Сбросьте volumes секретов/БД (иначе останутся старые пароли):
-
-```bash
-docker compose down
-docker volume rm appsec_ctf_secrets_data appsec_ctf_postgres_data
-docker compose up --build -d
-```
-
-## Безопасность (встроено)
-
-- Случайные `SECRET_KEY`, пароль БД и пароль `admin-ussc` при первом старте
-- JWT в **HttpOnly** cookie (TTL 8 часов), не в `localStorage`
+- Случайные SECRET_KEY / пароль БД / пароль админа
+- API не торчит в сеть
+- HttpOnly cookie + Bearer fallback, TTL 8 часов
 - Rate limit на login/register
-- CORS только с разрешённых origin
-- API/web не exposed наружу
-- Контейнеры не от root (API через `gosu app`)
-- Проверка magic bytes загрузок
-- Рубрика оценки валидируется на сервере
-- Security headers в Caddy
+- Контейнер API не от root
+- Caddy принимает запросы по IP (не только localhost)
+- Авторизация отчётов/команд/чата
 
-## Переменные `.env`
+## Сеть
 
-| Переменная | Назначение |
-|---|---|
-| `ADMIN_USERNAME` | Первый админ (по умолчанию `admin-ussc`) |
-| `DOMAIN` | `localhost` или ваш домен |
-| `COOKIE_SECURE` | `true` за публичным HTTPS |
-| `CORS_ORIGINS` | Список origin через запятую |
-| `HTTP_PORT` / `HTTPS_PORT` | Порты Caddy (8080 / 8443) |
-
-Секреты (`SECRET_KEY`, пароли) **не** задаются вручную — живут в volume `secrets_data`.
-
-## Бэкапы
-
-```bash
-gunzip -c backup.sql.gz | docker compose exec -T db psql -U appsec -d appsec_ctf
-```
+Нужен IP из `hostname -I` (например `10.129.0.26`), не `172.x` Docker.  
+С интернета — публичный IP + security group на TCP 3000 (и 80 при необходимости).

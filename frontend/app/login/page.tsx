@@ -19,8 +19,8 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const { access_token: _token } = await login(username, password);
-      await setSession();
+      const { access_token } = await login(username, password);
+      await setSession(access_token);
       router.push("/challenge");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Ошибка входа");

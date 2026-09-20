@@ -19,7 +19,7 @@ class RateLimiter:
             if len(q) >= limit:
                 raise HTTPException(
                     status_code=429,
-                    detail="Слишком много попыток. Подождите минуту и попробуйте снова.",
+                    detail="Слишком много попыток. Подождите минуту.",
                 )
             q.append(now)
 

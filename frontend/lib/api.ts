@@ -8,6 +8,17 @@ export class ApiError extends Error {
   }
 }
 
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("token");
+}
+
+export function setToken(token: string | null) {
+  if (typeof window === "undefined") return;
+  if (token) localStorage.setItem("token", token);
+  else localStorage.removeItem("token");
+}
+
 async function parseError(res: Response): Promise<string> {
   try {
     const data = await res.json();
@@ -21,14 +32,14 @@ async function parseError(res: Response): Promise<string> {
   }
 }
 
-export async function api<T>(
-  path: string,
-  options: RequestInit = {},
-  _auth = true
-): Promise<T> {
+export async function api<T>(path: string, options: RequestInit = {}, auth = true): Promise<T> {
   const headers = new Headers(options.headers || {});
   if (!(options.body instanceof FormData) && !headers.has("Content-Type") && options.body) {
     headers.set("Content-Type", "application/json");
+  }
+  if (auth) {
+    const token = getToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
   }
 
   const res = await fetch(`${API_BASE}${path}`, {
@@ -36,9 +47,7 @@ export async function api<T>(
     headers,
     credentials: "include",
   });
-  if (!res.ok) {
-    throw new ApiError(res.status, await parseError(res));
-  }
+  if (!res.ok) throw new ApiError(res.status, await parseError(res));
   if (res.status === 204) return undefined as T;
   const text = await res.text();
   if (!text) return undefined as T;
@@ -65,11 +74,14 @@ export async function logoutRequest() {
   } catch {
     /* ignore */
   }
+  setToken(null);
 }
 
-/** Authenticated file download via blob (cookie session) */
 export async function downloadAuth(path: string, filename: string) {
-  const res = await fetch(`${API_BASE}${path}`, { credentials: "include" });
+  const token = getToken();
+  const headers: HeadersInit = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { headers, credentials: "include" });
   if (!res.ok) throw new ApiError(res.status, await parseError(res));
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
