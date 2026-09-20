@@ -21,7 +21,12 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-Откройте: `https://localhost` (Caddy выпустит локальный сертификат).
+Откройте (любой вариант):
+
+- `http://localhost:3000` — напрямую Next.js (удобно для локальной разработки)
+- `http://localhost:8080` или `https://localhost:8443` — через Caddy
+
+API: `http://localhost:8000/api/health`
 
 Учётные данные первого админа — из `.env`:
 

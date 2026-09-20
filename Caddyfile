@@ -3,6 +3,8 @@
 }
 
 {$DOMAIN:localhost} {
+	# Для localhost — внутренний сертификат (без Let's Encrypt)
+	tls internal
 	encode gzip
 
 	handle /api/* {
