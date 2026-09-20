@@ -28,7 +28,7 @@ DEFAULT_RUBRIC = [
         "description": "Чёткие шаги, PoC, окружение",
     },
     {
-        "id": "severity",
+        "id": "analysis",
         "title": "Глубина анализа",
         "max_points": 25,
         "description": "Качество и полнота исследования",
@@ -49,17 +49,30 @@ DEFAULT_RUBRIC = [
 
 
 def ensure_seed(db: Session) -> None:
+    """Создаёт админа только при первом запуске. Пароль из secrets не перезаписывается."""
     settings = get_settings()
+    username = settings.admin_username.strip().lower()
 
-    admin = get_user_by_username(db, settings.admin_username.lower())
+    admin = get_user_by_username(db, username)
     if not admin:
         admin = User(
-            username=settings.admin_username.lower(),
+            username=username,
             password_hash=hash_password(settings.admin_password),
-            display_name="Администратор",
+            display_name="Администратор УЦСБ",
             role=UserRole.admin,
+            is_active=True,
         )
         db.add(admin)
+        print(f"[seed] created admin user @{username}")
+    else:
+        print(f"[seed] admin @{username} already exists (password not changed)")
+
+    # Deactivate legacy default admin from earlier builds
+    if username != "admin":
+        legacy = get_user_by_username(db, "admin")
+        if legacy and legacy.is_active:
+            legacy.is_active = False
+            print("[seed] deactivated legacy @admin account")
 
     content = db.query(EventContent).filter(EventContent.id == 1).first()
     if not content:

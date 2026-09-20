@@ -2,97 +2,69 @@
 
 Платформа для командного CTF по безопасности приложений. Совместное мероприятие **УрФУ** и **УЦСБ**.
 
-## Возможности
-
-- Регистрация участников, вход, роли `participant` / `admin`
-- Команды до 10 человек, приглашение по логину
-- Сдача и пересдача отчёта (PDF, DOCX, TXT, MD)
-- Оценка 0–100 по рубрике с автокалькулятором, один судья на отчёт, публикация результата
-- Описание мероприятия и задание (Markdown) + скачивание ZIP исходников
-- Техподдержка (один диалог на команду) + уведомления в колокольчик
-- HTTPS через Caddy, автобэкапы PostgreSQL
-
 ## Быстрый старт
 
 ```bash
 cp .env.example .env
-# отредактируйте пароли и SECRET_KEY
+docker compose up --build -d
+docker compose logs init-secrets
+```
 
+При **первом** деплое в логах `init-secrets` будут сгенерированы пароли:
+
+```text
+Admin login:       admin-ussc
+Admin password:    <случайный>
+Postgres password: <случайный>
+```
+
+Позже пароль админа:
+
+```bash
+docker compose exec api cat /secrets/CREDENTIALS.txt
+```
+
+Откройте UI: **http://localhost:8080** (или https://localhost:8443).
+
+> API и Next.js **не** публикуются наружу — только через Caddy.  
+> Для отладки: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
+
+### Важно при обновлении со старой версии
+
+Сбросьте volumes секретов/БД (иначе останутся старые пароли):
+
+```bash
+docker compose down
+docker volume rm appsec_ctf_secrets_data appsec_ctf_postgres_data
 docker compose up --build -d
 ```
 
-Откройте (любой вариант):
+## Безопасность (встроено)
 
-- `http://localhost:3000` — напрямую Next.js (удобно для локальной разработки)
-- `http://localhost:8080` или `https://localhost:8443` — через Caddy
+- Случайные `SECRET_KEY`, пароль БД и пароль `admin-ussc` при первом старте
+- JWT в **HttpOnly** cookie (TTL 8 часов), не в `localStorage`
+- Rate limit на login/register
+- CORS только с разрешённых origin
+- API/web не exposed наружу
+- Контейнеры не от root (API через `gosu app`)
+- Проверка magic bytes загрузок
+- Рубрика оценки валидируется на сервере
+- Security headers в Caddy
 
-API: `http://localhost:8000/api/health`
-
-Учётные данные первого админа — из `.env`:
-
-- `ADMIN_USERNAME` (по умолчанию `admin`)
-- `ADMIN_PASSWORD`
-
-API health: `https://localhost/api/health`
-
-## Переменные окружения
+## Переменные `.env`
 
 | Переменная | Назначение |
 |---|---|
-| `DOMAIN` | `localhost` или ваш домен (Let's Encrypt) |
-| `ACME_EMAIL` | email для Let's Encrypt |
-| `POSTGRES_*` | доступ к БД |
-| `SECRET_KEY` | секрет JWT |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | seed-админ |
-| `BACKUP_CRON` | расписание бэкапов (UTC) |
-| `BACKUP_KEEP_DAYS` | сколько дней хранить дампы |
+| `ADMIN_USERNAME` | Первый админ (по умолчанию `admin-ussc`) |
+| `DOMAIN` | `localhost` или ваш домен |
+| `COOKIE_SECURE` | `true` за публичным HTTPS |
+| `CORS_ORIGINS` | Список origin через запятую |
+| `HTTP_PORT` / `HTTPS_PORT` | Порты Caddy (8080 / 8443) |
 
-## HTTPS
-
-- `DOMAIN=localhost` — локальный TLS Caddy
-- публичный домен + порты 80/443 — автоматический Let's Encrypt
+Секреты (`SECRET_KEY`, пароли) **не** задаются вручную — живут в volume `secrets_data`.
 
 ## Бэкапы
 
-Сервис `backup` делает дамп при старте и по cron в volume `backup_data` (`appsec_ctf_YYYYMMDD_HHMMSS.sql.gz`).
-
-Восстановление:
-
 ```bash
 gunzip -c backup.sql.gz | docker compose exec -T db psql -U appsec -d appsec_ctf
-```
-
-## Структура
-
-```
-backend/   FastAPI + SQLAlchemy + PostgreSQL
-frontend/  Next.js (App Router), UI на русском
-backup/    скрипт автобэкапов
-Caddyfile  reverse proxy + TLS
-```
-
-## Типовой сценарий
-
-1. Админ правит контент и загружает ZIP в `/admin/content`
-2. Участники регистрируются, создают команды, приглашают по логину
-3. Скачивают исходники, сдают отчёт
-4. Админ-судья закрепляет отчёт, выставляет баллы по критериям, публикует
-5. Команда видит оценку на `/report`
-
-## Локальная разработка (без Docker UI)
-
-```bash
-# API
-cd backend
-python -m venv .venv
-.venv\Scripts\activate   # Windows
-pip install -r requirements.txt
-set DATABASE_URL=postgresql+psycopg://appsec:appsec_secret_change_me@localhost:5432/appsec_ctf
-uvicorn app.main:app --reload --port 8000
-
-# Web
-cd frontend
-npm install
-set NEXT_PUBLIC_API_URL=http://localhost:8000
-npm run dev
 ```

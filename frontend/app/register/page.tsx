@@ -32,8 +32,8 @@ export default function RegisterPage() {
         },
         false
       );
-      const { access_token } = await login(username, password);
-      await setSession(access_token);
+      await login(username, password);
+      await setSession();
       router.push("/team");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Ошибка регистрации");
@@ -59,7 +59,7 @@ export default function RegisterPage() {
           </div>
           <div className="field">
             <label>Пароль</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required />
           </div>
           <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: "100%" }}>
             {loading ? "Создаём…" : "Зарегистрироваться"}

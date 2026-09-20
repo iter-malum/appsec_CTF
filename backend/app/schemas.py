@@ -10,7 +10,7 @@ class TokenOut(BaseModel):
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=64)
-    password: str = Field(min_length=6, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
     display_name: str = Field(min_length=1, max_length=128)
 
     @field_validator("username")
@@ -24,7 +24,7 @@ class UserCreate(BaseModel):
 
 class AdminUserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=64)
-    password: str = Field(min_length=6, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
     display_name: str = Field(min_length=1, max_length=128)
     role: str = "admin"
 

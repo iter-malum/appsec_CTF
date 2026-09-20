@@ -83,9 +83,15 @@ export function AppHeader() {
           </div>
         </Link>
 
-        <div className="partners">
-          <span className="partner-chip urfu">УрФУ</span>
-          <span className="partner-chip ussc">УЦСБ</span>
+        <div className="partners" aria-label="Партнёры">
+          <a className="partner-logo" href="https://urfu.ru/ru/" target="_blank" rel="noreferrer" title="УрФУ">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/urfu-dark.png" alt="Уральский федеральный университет" />
+          </a>
+          <a className="partner-logo ussc" href="https://www.ussc.ru/" target="_blank" rel="noreferrer" title="УЦСБ">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/ussc-wordmark.png" alt="УЦСБ" />
+          </a>
         </div>
 
         <nav className="nav-links">
@@ -145,7 +151,7 @@ export function AppHeader() {
                 )}
               </div>
               <span className="muted" style={{ fontSize: "0.85rem" }}>@{user.username}</span>
-              <button className="linkish" type="button" onClick={logout}>
+              <button className="linkish" type="button" onClick={() => void logout()}>
                 Выйти
               </button>
             </>

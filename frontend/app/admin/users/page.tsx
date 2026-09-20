@@ -79,7 +79,7 @@ function UsersInner() {
           </div>
           <div className="field">
             <label>Пароль</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required />
           </div>
           <div className="field">
             <label>Роль</label>

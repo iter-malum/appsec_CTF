@@ -20,7 +20,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </main>
             <footer className="footer">
               <div className="container row" style={{ justifyContent: "space-between" }}>
-                <span>AppSec CTF · совместное мероприятие УрФУ и УЦСБ</span>
+                <div className="row">
+                  <div className="footer-logos">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/brand/urfu-dark.png" alt="УрФУ" />
+                    <span className="ussc-wrap">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/brand/ussc-wordmark.png" alt="УЦСБ" />
+                    </span>
+                  </div>
+                  <span>AppSec CTF · совместное мероприятие</span>
+                </div>
                 <span>HTTPS · Docker · Secure by design</span>
               </div>
             </footer>

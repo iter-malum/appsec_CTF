@@ -8,17 +8,6 @@ export class ApiError extends Error {
   }
 }
 
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("token");
-}
-
-export function setToken(token: string | null) {
-  if (typeof window === "undefined") return;
-  if (token) localStorage.setItem("token", token);
-  else localStorage.removeItem("token");
-}
-
 async function parseError(res: Response): Promise<string> {
   try {
     const data = await res.json();
@@ -35,18 +24,18 @@ async function parseError(res: Response): Promise<string> {
 export async function api<T>(
   path: string,
   options: RequestInit = {},
-  auth = true
+  _auth = true
 ): Promise<T> {
   const headers = new Headers(options.headers || {});
   if (!(options.body instanceof FormData) && !headers.has("Content-Type") && options.body) {
     headers.set("Content-Type", "application/json");
   }
-  if (auth) {
-    const token = getToken();
-    if (token) headers.set("Authorization", `Bearer ${token}`);
-  }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
   if (!res.ok) {
     throw new ApiError(res.status, await parseError(res));
   }
@@ -64,22 +53,23 @@ export async function login(username: string, password: string) {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
+    credentials: "include",
   });
   if (!res.ok) throw new ApiError(res.status, await parseError(res));
   return res.json() as Promise<{ access_token: string }>;
 }
 
-export function downloadUrl(path: string) {
-  const token = getToken();
-  return `${API_BASE}${path}${token ? `?access_token=${encodeURIComponent(token)}` : ""}`;
+export async function logoutRequest() {
+  try {
+    await api("/api/auth/logout", { method: "POST" });
+  } catch {
+    /* ignore */
+  }
 }
 
-/** Authenticated file download via blob */
+/** Authenticated file download via blob (cookie session) */
 export async function downloadAuth(path: string, filename: string) {
-  const token = getToken();
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  const res = await fetch(`${API_BASE}${path}`, { credentials: "include" });
   if (!res.ok) throw new ApiError(res.status, await parseError(res));
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);

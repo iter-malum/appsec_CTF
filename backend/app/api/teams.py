@@ -253,3 +253,32 @@ def leave_team(user: User = Depends(get_current_user), db: Session = Depends(get
 
     user.team_id = None
     db.commit()
+
+
+@router.post("/{team_id}/members/{member_id}/remove", response_model=TeamOut)
+def remove_member(
+    team_id: int,
+    member_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> TeamOut:
+    team = _load_team(db, team_id)
+    if user.id != team.owner_id:
+        raise HTTPException(status_code=403, detail="Только владелец может исключать участников")
+    if member_id == team.owner_id:
+        raise HTTPException(status_code=400, detail="Нельзя исключить владельца команды")
+
+    member = db.query(User).filter(User.id == member_id, User.team_id == team.id).first()
+    if not member:
+        raise HTTPException(status_code=404, detail="Участник не найден в команде")
+
+    member.team_id = None
+    notify_user(
+        db,
+        member.id,
+        "Исключение из команды",
+        f"Вас исключили из команды «{team.name}»",
+        link="/team",
+    )
+    db.commit()
+    return _team_out(_load_team(db, team.id))

@@ -88,4 +88,8 @@ def download_source(
     if not content.source_stored_name:
         raise HTTPException(status_code=404, detail="Исходники ещё не загружены")
     path = resolve_path("sources", content.source_stored_name)
-    return FileResponse(path, filename=content.source_filename or "source.zip")
+    return FileResponse(
+        path,
+        filename=content.source_filename or "source.zip",
+        content_disposition_type="attachment",
+    )

@@ -102,6 +102,22 @@ function TeamInner() {
     }
   };
 
+  const removeMember = async (memberId: number, username: string) => {
+    if (!team) return;
+    if (!window.confirm(`Исключить @${username} из команды?`)) return;
+    setError("");
+    setOk("");
+    try {
+      const t = await api<Team>(`/api/teams/${team.id}/members/${memberId}/remove`, {
+        method: "POST",
+      });
+      setTeam(t);
+      setOk(`Участник @${username} исключён`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Не удалось исключить");
+    }
+  };
+
   if (loading) return <div className="panel muted">Загрузка…</div>;
 
   return (
@@ -162,6 +178,7 @@ function TeamInner() {
                 <tr>
                   <th>Участник</th>
                   <th>Роль</th>
+                  {user?.id === team.owner_id && <th />}
                 </tr>
               </thead>
               <tbody>
@@ -171,6 +188,19 @@ function TeamInner() {
                       {m.display_name} <span className="muted">@{m.username}</span>
                     </td>
                     <td>{m.is_owner ? <span className="badge green">владелец</span> : "участник"}</td>
+                    {user?.id === team.owner_id && (
+                      <td style={{ textAlign: "right" }}>
+                        {!m.is_owner && (
+                          <button
+                            className="btn btn-warn"
+                            type="button"
+                            onClick={() => void removeMember(m.id, m.username)}
+                          >
+                            Исключить
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

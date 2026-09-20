@@ -18,9 +18,13 @@ export default function HomePage() {
   return (
     <div className="stack">
       <section className="hero">
-        <div className="row">
-          <span className="partner-chip urfu">УрФУ</span>
-          <span className="partner-chip ussc">УЦСБ</span>
+        <div className="hero-logos">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="urfu-logo" src="/brand/urfu-dark.png" alt="Уральский федеральный университет" />
+          <span className="ussc-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/ussc-wordmark.png" alt="УЦСБ" />
+          </span>
         </div>
         <h1>{event?.title || "AppSec CTF"}</h1>
         <p>
@@ -67,6 +71,12 @@ export default function HomePage() {
           </div>
           <div className="panel">
             <h3>Партнёры</h3>
+            <div className="hero-logos" style={{ marginBottom: "0.75rem" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/urfu-dark.png" alt="УрФУ" style={{ height: 40 }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/ussc-badge.png" alt="УЦСБ" style={{ height: 52 }} />
+            </div>
             <p className="muted" style={{ margin: 0 }}>
               Совместная инициатива Уральского федерального университета и УЦСБ — связка академической
               экспертизы и индустрии информационной безопасности.

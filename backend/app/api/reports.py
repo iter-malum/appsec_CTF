@@ -175,7 +175,11 @@ def download_report(
     if user.role != UserRole.admin and user.team_id != report.team_id:
         raise HTTPException(status_code=403, detail="Нет доступа")
     path = resolve_path("reports", report.stored_name)
-    return FileResponse(path, filename=report.original_filename)
+    return FileResponse(
+        path,
+        filename=report.original_filename,
+        content_disposition_type="attachment",
+    )
 
 
 @router.post("/{report_id}/claim", response_model=ReportOut)
@@ -206,9 +210,36 @@ def score_report(
     if report.judge_id and report.judge_id != admin.id:
         raise HTTPException(status_code=403, detail="Отчёт закреплён за другим судьёй")
 
+    content = db.query(EventContent).filter(EventContent.id == 1).first()
+    expected = {item["id"]: item for item in (content.rubric if content else [])}
+    if not expected:
+        raise HTTPException(status_code=400, detail="Рубрика мероприятия не настроена")
+    if len(payload.rubric_scores) != len(expected):
+        raise HTTPException(status_code=400, detail="Оценка должна содержать все критерии рубрики")
+
+    normalized = []
+    for item in payload.rubric_scores:
+        base = expected.get(item.id)
+        if not base:
+            raise HTTPException(status_code=400, detail=f"Неизвестный критерий: {item.id}")
+        max_points = float(base["max_points"])
+        if abs(item.max_points - max_points) > 0.01:
+            raise HTTPException(status_code=400, detail=f"Неверный max_points для «{base['title']}»")
+        if item.score < 0 or item.score > max_points:
+            raise HTTPException(status_code=400, detail=f"Балл по «{base['title']}» вне диапазона")
+        normalized.append(
+            {
+                "id": item.id,
+                "title": base["title"],
+                "max_points": max_points,
+                "score": item.score,
+                "description": base.get("description") or "",
+            }
+        )
+
     report.judge_id = admin.id
-    report.rubric_scores = [s.model_dump() for s in payload.rubric_scores]
-    report.total_score = round(sum(s.score for s in payload.rubric_scores), 2)
+    report.rubric_scores = normalized
+    report.total_score = round(sum(s["score"] for s in normalized), 2)
     report.comment = payload.comment
     report.scored_at = datetime.now(timezone.utc)
 

@@ -3,15 +3,18 @@
 }
 
 {$DOMAIN:localhost} {
-	# Для localhost — внутренний сертификат (без Let's Encrypt)
 	tls internal
 	encode gzip
 
-	handle /api/* {
-		reverse_proxy api:8000
+	# Security headers
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
 	}
 
-	handle /uploads/* {
+	handle /api/* {
 		reverse_proxy api:8000
 	}
 
