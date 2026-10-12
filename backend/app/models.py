@@ -44,6 +44,10 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     display_name: Mapped[str] = mapped_column(String(128))
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.participant)
+    university: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    course: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    study_program: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    contact_extra: Mapped[str | None] = mapped_column(String(256), nullable=True)
     team_id: Mapped[int | None] = mapped_column(
         ForeignKey("teams.id", use_alter=True, name="fk_users_team_id"),
         nullable=True,
@@ -103,6 +107,7 @@ class EventContent(Base):
     source_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     source_stored_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     rubric: Mapped[list] = mapped_column(JSONB, default=list)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

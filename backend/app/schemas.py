@@ -8,10 +8,23 @@ class TokenOut(BaseModel):
     token_type: str = "bearer"
 
 
+def _clean_text(v: str, field: str) -> str:
+    v = " ".join(v.strip().split())
+    if not v:
+        raise ValueError(f"Поле «{field}» обязательно")
+    if any(ch in v for ch in ("<", ">", "{", "}", "\x00")):
+        raise ValueError(f"Недопустимые символы в поле «{field}»")
+    return v
+
+
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=64)
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=8, max_length=72)
     display_name: str = Field(min_length=1, max_length=128)
+    university: str = Field(min_length=2, max_length=256)
+    course: str = Field(min_length=1, max_length=64)
+    study_program: str = Field(min_length=2, max_length=256)
+    contact_extra: str = Field(min_length=3, max_length=256)
 
     @field_validator("username")
     @classmethod
@@ -21,10 +34,35 @@ class UserCreate(BaseModel):
             raise ValueError("Логин: только латиница, цифры, _ и -")
         return v
 
+    @field_validator("display_name")
+    @classmethod
+    def display_ok(cls, v: str) -> str:
+        return _clean_text(v, "Отображаемое имя")
+
+    @field_validator("university")
+    @classmethod
+    def university_ok(cls, v: str) -> str:
+        return _clean_text(v, "ВУЗ")
+
+    @field_validator("course")
+    @classmethod
+    def course_ok(cls, v: str) -> str:
+        return _clean_text(v, "Курс")
+
+    @field_validator("study_program")
+    @classmethod
+    def program_ok(cls, v: str) -> str:
+        return _clean_text(v, "Направление подготовки")
+
+    @field_validator("contact_extra")
+    @classmethod
+    def contact_ok(cls, v: str) -> str:
+        return _clean_text(v, "Доп. связь")
+
 
 class AdminUserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=64)
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=8, max_length=72)
     display_name: str = Field(min_length=1, max_length=128)
     role: str = "admin"
 
@@ -52,12 +90,21 @@ class UserOut(BaseModel):
     team_id: int | None
     is_active: bool
     created_at: datetime
+    university: str | None = None
+    course: str | None = None
+    study_program: str | None = None
+    contact_extra: str | None = None
 
     model_config = {"from_attributes": True}
 
 
 class TeamCreate(BaseModel):
     name: str = Field(min_length=2, max_length=128)
+
+    @field_validator("name")
+    @classmethod
+    def name_ok(cls, v: str) -> str:
+        return _clean_text(v, "Название команды")
 
 
 class TeamInviteCreate(BaseModel):
@@ -69,6 +116,8 @@ class TeamMemberOut(BaseModel):
     username: str
     display_name: str
     is_owner: bool
+    university: str | None = None
+    course: str | None = None
 
 
 class TeamInviteOut(BaseModel):
@@ -106,10 +155,12 @@ class RubricScoreItem(BaseModel):
 
 
 class EventContentUpdate(BaseModel):
-    title: str | None = None
-    description_md: str | None = None
-    challenge_md: str | None = None
+    title: str | None = Field(default=None, max_length=256)
+    description_md: str | None = Field(default=None, max_length=100_000)
+    challenge_md: str | None = Field(default=None, max_length=100_000)
     rubric: list[RubricItem] | None = None
+    ends_at: datetime | None = None
+    clear_ends_at: bool = False
 
 
 class EventContentOut(BaseModel):
@@ -119,6 +170,9 @@ class EventContentOut(BaseModel):
     has_source: bool
     source_filename: str | None
     rubric: list[RubricItem]
+    ends_at: datetime | None
+    seconds_left: int | None
+    is_finished: bool
     updated_at: datetime | None
 
 
@@ -162,12 +216,19 @@ class ReportOut(BaseModel):
     is_published: bool
     scored_at: datetime | None
     published_at: datetime | None
-    # for participants: hide unpublished scoring
     can_view_score: bool
 
 
 class MessageCreate(BaseModel):
     body: str = Field(min_length=1, max_length=5000)
+
+    @field_validator("body")
+    @classmethod
+    def body_ok(cls, v: str) -> str:
+        v = v.replace("\x00", "").strip()
+        if not v:
+            raise ValueError("Сообщение пустое")
+        return v[:5000]
 
 
 class MessageOut(BaseModel):

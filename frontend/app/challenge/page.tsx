@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Countdown } from "@/components/Countdown";
 import { Markdown } from "@/components/Markdown";
 import { RequireAuth } from "@/components/RequireAuth";
 import { api, ApiError, downloadAuth } from "@/lib/api";
@@ -43,12 +44,15 @@ function ChallengeInner() {
           <div>
             <h2 style={{ marginBottom: 4 }}>Задание</h2>
             <p className="muted" style={{ margin: 0 }}>
-              Одно задание на всё мероприятие. Отчёт сдаётся от команды.
+              Одно задание на всё мероприятие. Отчёт сдаётся от команды (PDF).
             </p>
           </div>
           <button className="btn btn-primary" type="button" disabled={!event?.has_source || busy} onClick={download}>
             {event?.has_source ? (busy ? "Скачивание…" : "Скачать исходники (ZIP)") : "Исходники скоро"}
           </button>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <Countdown endsAt={event?.ends_at} secondsLeft={event?.seconds_left} isFinished={event?.is_finished} />
         </div>
       </div>
       {error && <div className="alert error">{error}</div>}

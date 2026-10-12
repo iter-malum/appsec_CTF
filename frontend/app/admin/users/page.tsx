@@ -98,6 +98,8 @@ function UsersInner() {
             <thead>
               <tr>
                 <th>Логин</th>
+                <th>ВУЗ / курс</th>
+                <th>Связь</th>
                 <th>Роль</th>
                 <th>Статус</th>
                 <th />
@@ -109,7 +111,12 @@ function UsersInner() {
                   <td>
                     {u.display_name}
                     <div className="muted">@{u.username}</div>
+                    {u.study_program && <div className="muted" style={{ fontSize: "0.8rem" }}>{u.study_program}</div>}
                   </td>
+                  <td className="muted" style={{ fontSize: "0.9rem" }}>
+                    {[u.university, u.course].filter(Boolean).join(" · ") || "—"}
+                  </td>
+                  <td className="muted" style={{ fontSize: "0.9rem" }}>{u.contact_extra || "—"}</td>
                   <td>
                     <span className={`badge ${u.role === "admin" ? "blue" : "green"}`}>{u.role}</span>
                   </td>

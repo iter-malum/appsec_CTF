@@ -6,6 +6,10 @@ export type User = {
   team_id: number | null;
   is_active: boolean;
   created_at: string;
+  university?: string | null;
+  course?: string | null;
+  study_program?: string | null;
+  contact_extra?: string | null;
 };
 
 export type RubricItem = {
@@ -24,6 +28,9 @@ export type EventContent = {
   has_source: boolean;
   source_filename: string | null;
   rubric: RubricItem[];
+  ends_at: string | null;
+  seconds_left: number | null;
+  is_finished: boolean;
   updated_at: string | null;
 };
 
@@ -32,6 +39,8 @@ export type TeamMember = {
   username: string;
   display_name: string;
   is_owner: boolean;
+  university?: string | null;
+  course?: string | null;
 };
 
 export type TeamInvite = {

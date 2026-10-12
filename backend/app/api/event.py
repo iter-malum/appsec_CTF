@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -6,6 +8,7 @@ from app.database import get_db
 from app.models import EventContent, User
 from app.schemas import EventContentOut, EventContentUpdate, RubricItem
 from app.security import get_current_admin, get_current_user
+from app.services.event_time import event_is_finished, seconds_left
 from app.services.files import resolve_path, save_upload
 
 router = APIRouter(prefix="/event", tags=["event"])
@@ -27,6 +30,9 @@ def _out(content: EventContent) -> EventContentOut:
         has_source=bool(content.source_stored_name),
         source_filename=content.source_filename,
         rubric=rubric,
+        ends_at=content.ends_at,
+        seconds_left=seconds_left(content),
+        is_finished=event_is_finished(content),
         updated_at=content.updated_at,
     )
 
@@ -54,6 +60,13 @@ def update_event(
         if abs(total - 100) > 0.01:
             raise HTTPException(status_code=400, detail=f"Сумма критериев должна быть 100 (сейчас {total})")
         content.rubric = [i.model_dump() for i in payload.rubric]
+    if payload.clear_ends_at:
+        content.ends_at = None
+    elif payload.ends_at is not None:
+        ends = payload.ends_at
+        if ends.tzinfo is None:
+            ends = ends.replace(tzinfo=timezone.utc)
+        content.ends_at = ends
     db.commit()
     db.refresh(content)
     return _out(content)

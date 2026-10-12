@@ -124,7 +124,7 @@ function TeamInner() {
     <div className="stack">
       <div className="panel">
         <h2>Команда</h2>
-        <p className="muted">Максимум 10 участников. Один человек — одна команда. Приглашение по логину.</p>
+        <p className="muted">Максимум 5 участников. Один человек — одна команда. Приглашение по логину.</p>
       </div>
       {error && <div className="alert error">{error}</div>}
       {ok && <div className="alert ok">{ok}</div>}
@@ -171,7 +171,7 @@ function TeamInner() {
           <div className="panel">
             <div className="row" style={{ justifyContent: "space-between" }}>
               <h3 style={{ margin: 0 }}>{team.name}</h3>
-              <span className="badge blue">{team.members.length}/10</span>
+              <span className="badge blue">{team.members.length}/5</span>
             </div>
             <table className="table">
               <thead>
@@ -186,6 +186,11 @@ function TeamInner() {
                   <tr key={m.id}>
                     <td>
                       {m.display_name} <span className="muted">@{m.username}</span>
+                      {(m.university || m.course) && (
+                        <div className="muted" style={{ fontSize: "0.85rem" }}>
+                          {[m.university, m.course ? `${m.course} курс` : null].filter(Boolean).join(" · ")}
+                        </div>
+                      )}
                     </td>
                     <td>{m.is_owner ? <span className="badge green">владелец</span> : "участник"}</td>
                     {user?.id === team.owner_id && (

@@ -28,9 +28,11 @@ limiter = RateLimiter()
 
 
 def client_ip(request: Request) -> str:
+    # Next.js rewrite / reverse proxy may pass the real client.
+    # API is not meant to be exposed publicly; still sanitize length.
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        return forwarded.split(",")[0].strip()
-    if request.client:
+        return forwarded.split(",")[0].strip()[:64] or "unknown"
+    if request.client and request.client.host:
         return request.client.host
     return "unknown"

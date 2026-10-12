@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.config import get_settings
 from app.database import get_db
-from app.models import InviteStatus, Team, TeamInvite, User
+from app.models import EventContent, InviteStatus, Team, TeamInvite, User
 from app.schemas import TeamCreate, TeamInviteCreate, TeamInviteOut, TeamMemberOut, TeamOut
 from app.security import get_current_user, get_user_by_username
+from app.services.event_time import event_is_finished
 from app.services.notifications import notify_user
 
 router = APIRouter(prefix="/teams", tags=["teams"])
@@ -19,6 +20,8 @@ def _team_out(team: Team) -> TeamOut:
             username=m.username,
             display_name=m.display_name,
             is_owner=m.id == team.owner_id,
+            university=m.university,
+            course=m.course,
         )
         for m in team.members
     ]
@@ -66,7 +69,11 @@ def create_team(payload: TeamCreate, user: User = Depends(get_current_user), db:
     if user.team_id:
         raise HTTPException(status_code=400, detail="Вы уже состоите в команде")
 
-    name = payload.name.strip()
+    content = db.query(EventContent).filter(EventContent.id == 1).first()
+    if content and event_is_finished(content):
+        raise HTTPException(status_code=403, detail="Мероприятие завершено: создание команд закрыто")
+
+    name = payload.name
     if db.query(Team).filter(Team.name == name).first():
         raise HTTPException(status_code=400, detail="Название команды уже занято")
 
@@ -93,9 +100,8 @@ def invite_member(
     db: Session = Depends(get_db),
 ) -> TeamInviteOut:
     team = _load_team(db, team_id)
-    if user.id != team.owner_id and user.team_id != team.id:
-        raise HTTPException(status_code=403, detail="Только участник команды может приглашать")
-    # Prefer owner for invites, but allow any member as requested "код приглашения по логину"
+    if user.id != team.owner_id:
+        raise HTTPException(status_code=403, detail="Только владелец команды может приглашать")
     if len(team.members) >= settings.team_max_size:
         raise HTTPException(status_code=400, detail=f"Максимум {settings.team_max_size} участников")
 
@@ -198,6 +204,10 @@ def accept_invite(
         raise HTTPException(status_code=400, detail="Приглашение уже обработано")
     if user.team_id:
         raise HTTPException(status_code=400, detail="Вы уже состоите в команде")
+
+    content = db.query(EventContent).filter(EventContent.id == 1).first()
+    if content and event_is_finished(content):
+        raise HTTPException(status_code=403, detail="Мероприятие завершено")
 
     team = invite.team
     if len(team.members) >= settings.team_max_size:

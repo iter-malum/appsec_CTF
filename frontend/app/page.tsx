@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Countdown } from "@/components/Countdown";
 import { Markdown } from "@/components/Markdown";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -18,11 +19,14 @@ export default function HomePage() {
   return (
     <div className="stack">
       <section className="hero">
-        <h1>{event?.title || "AppSec CTF"}</h1>
+        <h1>
+          {event?.title || "AppSec CTF"}
+        </h1>
         <p>
           Высокотехнологичная платформа командного соревнования по безопасности приложений.
           Соберите команду, разберите учебное приложение и сдайте отчёт судьям.
         </p>
+        <Countdown endsAt={event?.ends_at} secondsLeft={event?.seconds_left} isFinished={event?.is_finished} />
         <div className="hero-actions">
           {user ? (
             <>
@@ -54,9 +58,9 @@ export default function HomePage() {
         <aside className="panel">
           <h3>Как проходит</h3>
           <ol className="muted" style={{ margin: 0, paddingLeft: "1.1rem", lineHeight: 1.7 }}>
-            <li>Регистрация и создание команды (до 10 человек)</li>
+            <li>Регистрация и создание команды (до 5 человек)</li>
             <li>Скачивание исходников и анализ</li>
-            <li>Сдача отчёта PDF / DOCX / TXT / MD</li>
+            <li>Сдача отчёта в формате PDF</li>
             <li>Оценка по критериям 0–100 и публикация результата</li>
           </ol>
         </aside>

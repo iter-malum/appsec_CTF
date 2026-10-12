@@ -1,13 +1,16 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 
+from app.config import get_settings
 from app.database import get_db
 from app.models import EventContent, Report, Team, User, UserRole
+from app.rate_limit import client_ip, limiter
 from app.schemas import ReportOut, ReportScoreUpdate, RubricScoreItem
 from app.security import get_current_admin, get_current_user
+from app.services.event_time import event_is_finished
 from app.services.files import allowed_report_ext, resolve_path, save_upload
 from app.services.notifications import notify_admins, notify_user
 
@@ -56,19 +59,39 @@ def _load_report(db: Session, report_id: int) -> Report:
 
 @router.post("/submit", response_model=ReportOut)
 async def submit_report(
+    request: Request,
     file: UploadFile = File(...),
     note: str | None = Form(None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ReportOut:
+    settings = get_settings()
+    limiter.check(
+        f"report:{user.id}:{client_ip(request)}",
+        max(3, settings.rate_limit_register),
+        settings.rate_limit_window_sec,
+    )
+
     if not user.team_id:
         raise HTTPException(status_code=400, detail="Сначала вступите в команду")
+
+    content = db.query(EventContent).filter(EventContent.id == 1).first()
+    if content and event_is_finished(content):
+        raise HTTPException(status_code=403, detail="Срок сдачи истёк")
+
+    clean_note = None
+    if note is not None:
+        clean_note = " ".join(note.replace("\x00", "").strip().split())
+        if len(clean_note) > 2000:
+            raise HTTPException(status_code=400, detail="Комментарий слишком длинный (макс. 2000)")
+        if not clean_note:
+            clean_note = None
 
     allowed_report_ext(file.filename or "")
     original, stored = await save_upload(
         file,
         "reports",
-        allowed_exts={".pdf", ".docx", ".txt", ".md"},
+        allowed_exts={".pdf"},
     )
 
     report = db.query(Report).filter(Report.team_id == user.team_id).first()
@@ -85,8 +108,8 @@ async def submit_report(
             pass
         report.original_filename = original
         report.stored_name = stored
-        report.content_type = file.content_type
-        report.note = note
+        report.content_type = "application/pdf"
+        report.note = clean_note
         report.submitted_by_id = user.id
         report.is_published = False
         report.published_at = None
@@ -96,8 +119,8 @@ async def submit_report(
             team_id=user.team_id,
             original_filename=original,
             stored_name=stored,
-            content_type=file.content_type,
-            note=note,
+            content_type="application/pdf",
+            note=clean_note,
             submitted_by_id=user.id,
         )
         db.add(report)
@@ -175,10 +198,15 @@ def download_report(
     if user.role != UserRole.admin and user.team_id != report.team_id:
         raise HTTPException(status_code=403, detail="Нет доступа")
     path = resolve_path("reports", report.stored_name)
+    safe_name = (report.original_filename or "report.pdf").replace('"', "").replace("\n", "")[:200]
+    if not safe_name.lower().endswith(".pdf"):
+        safe_name = f"{safe_name}.pdf"
     return FileResponse(
         path,
-        filename=report.original_filename,
+        filename=safe_name,
+        media_type="application/pdf",
         content_disposition_type="attachment",
+        headers={"X-Content-Type-Options": "nosniff"},
     )
 
 

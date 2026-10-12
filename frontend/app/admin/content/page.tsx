@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Countdown } from "@/components/Countdown";
 import { RequireAuth } from "@/components/RequireAuth";
 import { api, ApiError } from "@/lib/api";
 import type { EventContent, RubricItem } from "@/lib/types";
@@ -12,6 +13,14 @@ function newItem(): RubricItem {
     max_points: 0,
     description: "",
   };
+}
+
+function toLocalInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export default function AdminContentPage() {
@@ -27,6 +36,8 @@ function ContentInner() {
   const [description, setDescription] = useState("");
   const [challenge, setChallenge] = useState("");
   const [rubric, setRubric] = useState<RubricItem[]>([]);
+  const [endsAtLocal, setEndsAtLocal] = useState("");
+  const [eventMeta, setEventMeta] = useState<Pick<EventContent, "ends_at" | "seconds_left" | "is_finished"> | null>(null);
   const [sourceName, setSourceName] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
@@ -42,6 +53,8 @@ function ContentInner() {
       setChallenge(e.challenge_md);
       setRubric(e.rubric.length ? e.rubric : [newItem()]);
       setSourceName(e.source_filename);
+      setEndsAtLocal(toLocalInput(e.ends_at));
+      setEventMeta({ ends_at: e.ends_at, seconds_left: e.seconds_left, is_finished: e.is_finished });
     });
   }, []);
 
@@ -51,14 +64,28 @@ function ContentInner() {
     setError("");
     setOk("");
     try {
-      await api("/api/event", {
+      const payload: Record<string, unknown> = {
+        title,
+        description_md: description,
+        challenge_md: challenge,
+        rubric,
+      };
+      if (endsAtLocal.trim()) {
+        payload.ends_at = new Date(endsAtLocal).toISOString();
+        payload.clear_ends_at = false;
+      } else {
+        payload.clear_ends_at = true;
+        payload.ends_at = null;
+      }
+      const updated = await api<EventContent>("/api/event", {
         method: "PUT",
-        body: JSON.stringify({
-          title,
-          description_md: description,
-          challenge_md: challenge,
-          rubric,
-        }),
+        body: JSON.stringify(payload),
+      });
+      setEndsAtLocal(toLocalInput(updated.ends_at));
+      setEventMeta({
+        ends_at: updated.ends_at,
+        seconds_left: updated.seconds_left,
+        is_finished: updated.is_finished,
       });
       setOk("Сохранено");
     } catch (err) {
@@ -91,6 +118,11 @@ function ContentInner() {
       <div className="panel">
         <h2>Контент мероприятия</h2>
         <p className="muted">Markdown для описания и задания. Сумма критериев должна быть ровно 100.</p>
+        <Countdown
+          endsAt={eventMeta?.ends_at}
+          secondsLeft={eventMeta?.seconds_left}
+          isFinished={eventMeta?.is_finished}
+        />
       </div>
       {error && <div className="alert error">{error}</div>}
       {ok && <div className="alert ok">{ok}</div>}
@@ -98,7 +130,18 @@ function ContentInner() {
       <form className="panel stack" onSubmit={save}>
         <div className="field">
           <label>Название</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={256} />
+        </div>
+        <div className="field">
+          <label>Окончание мероприятия</label>
+          <input
+            type="datetime-local"
+            value={endsAtLocal}
+            onChange={(e) => setEndsAtLocal(e.target.value)}
+          />
+          <span className="muted" style={{ fontSize: "0.85rem" }}>
+            После этой даты регистрация и сдача отчётов закрываются. Оставьте пустым, чтобы снять ограничение.
+          </span>
         </div>
         <div className="field">
           <label>Описание (Markdown)</label>

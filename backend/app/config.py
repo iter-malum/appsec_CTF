@@ -31,8 +31,8 @@ class Settings(BaseSettings):
     admin_password: str = ""
     upload_dir: str = "./uploads"
     max_upload_mb: int = 25
-    team_max_size: int = 10
-    allowed_report_extensions: str = ".pdf,.docx,.txt,.md"
+    team_max_size: int = 5
+    allowed_report_extensions: str = ".pdf"
     cookie_secure: bool = False
     cookie_samesite: str = "lax"
     cookie_name: str = "access_token"

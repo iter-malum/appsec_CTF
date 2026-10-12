@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Countdown } from "@/components/Countdown";
 import { RequireAuth } from "@/components/RequireAuth";
 import { api, ApiError, downloadAuth } from "@/lib/api";
-import type { Report } from "@/lib/types";
+import type { EventContent, Report } from "@/lib/types";
 
 export default function ReportPage() {
   return (
@@ -15,6 +16,7 @@ export default function ReportPage() {
 
 function ReportInner() {
   const [report, setReport] = useState<Report | null>(null);
+  const [event, setEvent] = useState<EventContent | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
@@ -23,9 +25,14 @@ function ReportInner() {
 
   const load = async () => {
     try {
-      setReport(await api<Report | null>("/api/reports/mine"));
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Ошибка");
+      const [r, e] = await Promise.all([
+        api<Report | null>("/api/reports/mine"),
+        api<EventContent>("/api/event"),
+      ]);
+      setReport(r);
+      setEvent(e);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Ошибка");
     }
   };
 
@@ -33,10 +40,16 @@ function ReportInner() {
     void load();
   }, []);
 
+  const finished = !!event?.is_finished;
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!file) {
-      setError("Выберите файл отчёта");
+      setError("Выберите PDF-файл отчёта");
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      setError("Допустим только PDF");
       return;
     }
     setBusy(true);
@@ -61,28 +74,31 @@ function ReportInner() {
     <div className="stack">
       <div className="panel">
         <h2>Отчёт команды</h2>
-        <p className="muted">Форматы: PDF, DOCX, TXT, MD. Можно пересдавать — после пересдачи оценка снова скрыта до публикации.</p>
+        <p className="muted">Формат: только PDF. Можно пересдавать — после пересдачи оценка снова скрыта до публикации.</p>
+        <Countdown endsAt={event?.ends_at} secondsLeft={event?.seconds_left} isFinished={event?.is_finished} />
       </div>
       {error && <div className="alert error">{error}</div>}
       {ok && <div className="alert ok">{ok}</div>}
+      {finished && <div className="alert error">Срок сдачи истёк — новые отчёты не принимаются.</div>}
 
       <div className="grid-2">
         <div className="panel">
           <h3>{report ? "Пересдать отчёт" : "Сдать отчёт"}</h3>
           <form onSubmit={submit}>
             <div className="field">
-              <label>Файл</label>
+              <label>PDF-файл</label>
               <input
                 type="file"
-                accept=".pdf,.docx,.txt,.md,application/pdf,text/plain,text/markdown"
+                accept=".pdf,application/pdf"
+                disabled={finished}
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
             </div>
             <div className="field">
               <label>Комментарий к сдаче (необязательно)</label>
-              <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
+              <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} disabled={finished} maxLength={2000} />
             </div>
-            <button className="btn btn-primary" type="submit" disabled={busy}>
+            <button className="btn btn-primary" type="submit" disabled={busy || finished}>
               {busy ? "Отправка…" : report ? "Пересдать" : "Сдать"}
             </button>
           </form>
